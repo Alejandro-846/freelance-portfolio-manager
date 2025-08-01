@@ -7,6 +7,7 @@ import { proposalMenu } from './commands/proposalCommands.js';
 import { connectDB, closeConnection } from './config/database.js';
 import { displayError, displaySuccess } from './utils/helpers.js';
 
+
 // Manejo de errores no capturados
 process.on('unhandledRejection', (error) => {
   displayError('Error no manejado:', error);
