@@ -1,0 +1,25 @@
+{
+  "name": "freelance-portfolio-manager",
+  "version": "1.0.0",
+  "description": "Gestor de portafolio freelance",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "dotenv": "^17.2.1",
+    "inquirer": "^12.9.0",
+    "mongodb": "^6.18.0",
+    "uuid": "^11.1.0",
+    "zod": "^4.0.14"
+  },
+  "devDependencies": {
+    "@types/chalk": "^0.4.31",
+    "@types/inquirer": "^9.0.8",
+    "@types/node": "^24.1.0",
+    "nodemon": "^3.1.10"
+  }
+}
