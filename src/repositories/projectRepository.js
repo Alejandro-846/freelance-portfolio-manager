@@ -1,10 +1,10 @@
 import { ObjectId } from 'mongodb';
 import { connectDB } from '../config/database.js';
-import { Proposal } from '../models/Proposal.js';
+import { Project } from '../models/Project.js';
 
-export class ProposalRepository {
+export class ProjectRepository {
   constructor() {
-    this.collectionName = 'proposals';
+    this.collectionName = 'projects';
   }
 
   async #getCollection() {
@@ -12,11 +12,11 @@ export class ProposalRepository {
     return db.collection(this.collectionName);
   }
 
-  async create(proposalData, session = null) {
+  async create(projectData, session = null) {
     const collection = await this.#getCollection();
-    const proposal = new Proposal(proposalData);
-    const result = await collection.insertOne(proposal, { session });
-    return { ...proposal, _id: result.insertedId };
+    const project = new Project(projectData);
+    const result = await collection.insertOne(project, { session });
+    return { ...project, _id: result.insertedId };
   }
 
   async findById(id, session = null) {
@@ -39,7 +39,19 @@ export class ProposalRepository {
       ...p,
       _id: p._id.toString(),
       clientId: p.clientId.toString(),
-      ...(p.projectId && { projectId: p.projectId.toString() })
+      proposalId: p.proposalId.toString()
+    }));
+  }
+
+  async findByStatus(status, session = null) {
+    const collection = await this.#getCollection();
+    const options = session ? { session } : {};
+    const cursor = await collection.find({ status }, options);
+    return (await cursor.toArray()).map(p => ({
+      ...p,
+      _id: p._id.toString(),
+      clientId: p.clientId.toString(),
+      proposalId: p.proposalId.toString()
     }));
   }
 
@@ -57,25 +69,30 @@ export class ProposalRepository {
     return result.modifiedCount > 0;
   }
 
-  async update(id, updateData, session = null) {
+  async addDeliverable(projectId, deliverable, session = null) {
     const collection = await this.#getCollection();
     const options = session ? { session } : {};
     const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData },
+      { _id: new ObjectId(projectId) },
+      { $push: { deliverables: deliverable } },
       options
     );
     return result.modifiedCount > 0;
   }
 
-  async listByStatus(status, session = null) {
+  async updateDeliverableStatus(projectId, deliverableIndex, newStatus, session = null) {
     const collection = await this.#getCollection();
     const options = session ? { session } : {};
-    const cursor = await collection.find({ status }, options);
-    return (await cursor.toArray()).map(p => ({
-      ...p,
-      _id: p._id.toString(),
-      clientId: p.clientId.toString()
-    }));
+    const key = `deliverables.${deliverableIndex}.status`;
+    const result = await collection.updateOne(
+      { _id: new ObjectId(projectId) },
+      { $set: { 
+        [key]: newStatus,
+        [`deliverables.${deliverableIndex}.updatedAt`]: new Date(),
+        updatedAt: new Date()
+      } },
+      options
+    );
+    return result.modifiedCount > 0;
   }
 }

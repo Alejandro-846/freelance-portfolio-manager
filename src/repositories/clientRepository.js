@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { connectDB, withTransaction } from '../config/database.js';
+import { connectDB } from '../config/database.js';
 import { Client } from '../models/Client.js';
 
 export class ClientRepository {
@@ -12,10 +12,10 @@ export class ClientRepository {
     return db.collection(this.collectionName);
   }
 
-  async create(clientData) {
+  async create(clientData, session = null) {
     const collection = await this.#getCollection();
     const client = new Client(clientData);
-    const result = await collection.insertOne(client);
+    const result = await collection.insertOne(client, { session });
     return Client.fromDB({ ...client, _id: result.insertedId });
   }
 
@@ -43,7 +43,6 @@ export class ClientRepository {
     const collection = await this.#getCollection();
     const options = session ? { session } : {};
     const query = activeOnly ? { isActive: true } : {};
-    
     const cursor = collection.find(query, options);
     return (await cursor.toArray()).map(Client.fromDB);
   }
@@ -52,7 +51,6 @@ export class ClientRepository {
     const collection = await this.#getCollection();
     const options = session ? { session } : {};
     
-    // Validamos los datos de actualización
     const client = await this.findById(id);
     if (!client) throw new Error('Client not found');
     
@@ -72,21 +70,13 @@ export class ClientRepository {
   }
 
   async addProject(clientId, projectId, session = null) {
-    return withTransaction(async (txSession) => {
-      const collection = await this.#getCollection();
-      const client = await this.findById(clientId, txSession);
-      
-      if (!client) throw new Error('Client not found');
-      
-      client.addProject(projectId);
-      
-      await collection.updateOne(
-        { _id: new ObjectId(clientId) },
-        { $set: { projects: client.projects } },
-        { session: txSession }
-      );
-      
-      return client;
-    }, session);
+    const collection = await this.#getCollection();
+    const options = session ? { session } : {};
+    const result = await collection.updateOne(
+      { _id: new ObjectId(clientId) },
+      { $push: { projects: new ObjectId(projectId) } },
+      options
+    );
+    return result.modifiedCount > 0;
   }
 }

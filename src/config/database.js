@@ -4,13 +4,12 @@ import chalk from 'chalk';
 
 dotenv.config();
 
-// Singleton para manejar la conexión
 let clientInstance = null;
 let dbInstance = null;
 
 export async function connectDB() {
   if (dbInstance) return dbInstance;
-
+  
   try {
     if (!process.env.MONGODB_URI) {
       throw new Error('MONGODB_URI no está definida en .env');
@@ -32,7 +31,6 @@ export async function connectDB() {
     console.log(chalk.green('✅ Connected to MongoDB'));
     console.log(chalk.gray(`Database: ${dbInstance.databaseName}`));
     
-    // Verificar conexión con ping
     await dbInstance.command({ ping: 1 });
     return dbInstance;
   } catch (error) {
@@ -41,15 +39,13 @@ export async function connectDB() {
   }
 }
 
-// Para transacciones (requerimiento del proyecto)
 export async function startSession() {
   if (!clientInstance) await connectDB();
   return clientInstance.startSession();
 }
 
-// Ejecutar operaciones con transacción
-export async function withTransaction(fn) {
-  const session = await startSession();
+export async function withTransaction(fn, existingSession = null) {
+  const session = existingSession || await startSession();
   try {
     let result;
     await session.withTransaction(async () => {
@@ -57,11 +53,12 @@ export async function withTransaction(fn) {
     });
     return result;
   } finally {
-    session.endSession();
+    if (!existingSession) {
+      session.endSession();
+    }
   }
 }
 
-// Cierre seguro de la conexión
 export async function closeConnection() {
   if (clientInstance) {
     await clientInstance.close();
@@ -71,7 +68,6 @@ export async function closeConnection() {
   }
 }
 
-// Manejo de cierre de la aplicación
 process.on('SIGINT', async () => {
   await closeConnection();
   process.exit(0);

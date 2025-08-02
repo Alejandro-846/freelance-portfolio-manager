@@ -22,6 +22,7 @@ export const ProposalSchema = z.object({
   status: ProposalStatus.default('DRAFT'),
   deliveryDate: z.date()
     .min(new Date(), "La fecha de entrega no puede ser en el pasado"),
+  projectId: z.instanceof(ObjectId).optional(),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date())
 });
@@ -30,7 +31,9 @@ export class Proposal {
   constructor(data) {
     const validatedData = ProposalSchema.parse({
       ...data,
-      clientId: new ObjectId(data.clientId)
+      clientId: new ObjectId(data.clientId),
+      deliveryDate: new Date(data.deliveryDate),
+      ...(data.projectId && { projectId: new ObjectId(data.projectId) })
     });
     Object.assign(this, validatedData);
   }

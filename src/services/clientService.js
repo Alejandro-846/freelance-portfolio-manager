@@ -1,6 +1,5 @@
-import { withTransaction } from '../config/database.js';
 import { ClientRepository } from '../repositories/clientRepository.js';
-import { Client } from '../models/Client.js';
+import { withTransaction } from '../config/database.js';
 
 export class ClientService {
   constructor() {
@@ -8,7 +7,6 @@ export class ClientService {
   }
 
   async createClient(clientData) {
-    // Validación de email único
     const emailExists = await this.checkEmailExists(clientData.email);
     if (emailExists) {
       throw new Error('El email ya está registrado');
@@ -35,10 +33,8 @@ export class ClientService {
 
   async updateClient(id, updateData) {
     return withTransaction(async (session) => {
-      // Verificar existencia primero
       await this.getClientById(id);
       
-      // Si se actualiza el email, verificar que no exista
       if (updateData.email) {
         const emailExists = await this.checkEmailExists(updateData.email);
         if (emailExists) {
@@ -63,7 +59,6 @@ export class ClientService {
   }
 
   async searchClients(searchTerm) {
-    // Implementación básica de búsqueda (puede mejorarse con índices)
     const allClients = await this.listClients(false);
     return allClients.filter(client => 
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

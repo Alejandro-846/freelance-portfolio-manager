@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import inquirer from 'inquirer';
-import ora from 'ora';
 import chalk from 'chalk';
 import { clientMenu } from './commands/clientCommands.js';
 import { proposalMenu } from './commands/proposalCommands.js';
+import { projectMenu } from './commands/projectCommands.js';
+import { financialMenu } from './commands/financialCommands.js';
 import { connectDB, closeConnection } from './config/database.js';
 import { displayError, displaySuccess } from './utils/helpers.js';
-
 
 // Manejo de errores no capturados
 process.on('unhandledRejection', (error) => {
@@ -18,9 +18,6 @@ process.on('uncaughtException', (error) => {
   displayError('Excepción no capturada:', error);
   process.exit(1);
 });
-
-
-
 
 async function main() {
   try {
@@ -35,12 +32,14 @@ async function main() {
         name: 'action',
         message: chalk.bold.blue('\nMENÚ PRINCIPAL'),
         choices: [
-          { name: '👥 Gestión de Clientes', value: 'clients' },
-          { name: '📄 Gestión de Propuestas', value: 'proposals' },
-          { name: '📂 Gestión de Proyectos', value: 'projects' },
-          { name: '📊 Reportes Financieros', value: 'reports' },
-          { name: '🚪 Salir', value: 'exit' }
-        ]
+          { name: `${chalk.green('›')} 👥 Gestión de Clientes`, value: 'clients' },
+          { name: `${chalk.green('›')} 📄 Gestión de Propuestas`, value: 'proposals' },
+          { name: `${chalk.green('›')} 📂 Gestión de Proyectos`, value: 'projects' },
+          { name: `${chalk.green('›')} 📊 Reportes Financieros`, value: 'financial' },
+          new inquirer.Separator(),
+          { name: `${chalk.yellow('↩')} 🚪 Salir`, value: 'exit' }
+        ],
+        pageSize: 10
       });
 
       try {
@@ -51,12 +50,16 @@ async function main() {
           case 'proposals':
             await proposalMenu();
             break;
+          case 'projects':
+            await projectMenu();
+            break;
+          case 'financial':
+            await financialMenu();
+            break;
           case 'exit':
             await closeConnection();
             displaySuccess('¡Hasta pronto!');
             process.exit(0);
-          default:
-            console.log(chalk.yellow('\nOpción no implementada aún'));
         }
       } catch (error) {
         displayError('Error en el menú:', error);

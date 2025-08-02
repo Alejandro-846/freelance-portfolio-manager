@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
 
-// Esquema de validación extendido
 export const ClientSchema = z.object({
   _id: z.instanceof(ObjectId).optional(),
   name: z.string()
@@ -30,21 +29,18 @@ export const ClientSchema = z.object({
     .default(() => new Date())
 });
 
-// Clase Client con métodos adicionales
 export class Client {
   constructor(data) {
     const validatedData = ClientSchema.parse(data);
     Object.assign(this, validatedData);
   }
 
-  // Método para actualizar propiedades
   update(updateData) {
     const validatedData = ClientSchema.partial().parse(updateData);
     Object.assign(this, validatedData, { updatedAt: new Date() });
     return this;
   }
 
-  // Método para añadir proyecto
   addProject(projectId) {
     if (!this.projects.some(id => id.equals(projectId))) {
       this.projects.push(ObjectId.createFromHexString(projectId));
@@ -53,14 +49,12 @@ export class Client {
     return this;
   }
 
-  // Método para desactivar cliente
   deactivate() {
     this.isActive = false;
     this.updatedAt = new Date();
     return this;
   }
 
-  // Método estático para crear desde DB
   static fromDB(data) {
     return new Client({
       ...data,
