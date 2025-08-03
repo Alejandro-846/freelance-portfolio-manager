@@ -5,6 +5,8 @@ import { clientMenu } from './commands/clientCommands.js';
 import { proposalMenu } from './commands/proposalCommands.js';
 import { projectMenu } from './commands/projectCommands.js';
 import { financialMenu } from './commands/financialCommands.js';
+import { deliverableMenu } from './commands/deliverableCommands.js';
+import { contractMenu } from './commands/contractCommands.js';
 import { connectDB, closeConnection } from './config/database.js';
 import { displayError, displaySuccess } from './utils/helpers.js';
 
@@ -32,12 +34,13 @@ async function main() {
         name: 'action',
         message: chalk.bold.blue('\nMENÚ PRINCIPAL'),
         choices: [
-          { name: `${chalk.green('›')} 👥 Gestión de Clientes`, value: 'clients' },
-          { name: `${chalk.green('›')} 📄 Gestión de Propuestas`, value: 'proposals' },
-          { name: `${chalk.green('›')} 📂 Gestión de Proyectos`, value: 'projects' },
-          { name: `${chalk.green('›')} 📊 Reportes Financieros`, value: 'financial' },
-          new inquirer.Separator(),
-          { name: `${chalk.yellow('↩')} 🚪 Salir`, value: 'exit' }
+          { name: '👥 Gestión de Clientes', value: 'clients' },
+          { name: '📄 Gestión de Propuestas', value: 'proposals' },
+          { name: '📂 Gestión de Proyectos', value: 'projects' },
+          { name: '📝 Entregables', value: 'deliverables' },
+          { name: '📑 Contratos', value: 'contracts' },
+          { name: '💰 Gestión Financiera', value: 'financial' },
+          { name: '🚪 Salir', value: 'exit' }
         ],
         pageSize: 10
       });
@@ -52,6 +55,12 @@ async function main() {
             break;
           case 'projects':
             await projectMenu();
+            break;
+          case 'deliverables':
+            await deliverableMenu();
+            break;
+          case 'contracts':
+            await contractMenu();
             break;
           case 'financial':
             await financialMenu();
