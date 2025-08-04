@@ -14,6 +14,7 @@ export async function projectMenu() {
       name: 'action',
       message: chalk.blue.bold('\n=== Gestión de Proyectos ==='),
       choices: [
+        { name: 'Crear Proyecto', value: 'create' },
         { name: 'Listar Proyectos Activos', value: 'list' },
         { name: 'Ver Proyectos por Cliente', value: 'by-client' },
         { name: 'Agregar Entregable', value: 'add-deliverable' },
@@ -24,6 +25,9 @@ export async function projectMenu() {
 
     try {
       switch (action) {
+        case 'create':
+          await handleCreateProject();
+          break;
         case 'list':
           await handleListProjects();
           break;
@@ -187,3 +191,38 @@ async function handleUpdateStatus() {
     displaySuccess('Estado del proyecto actualizado correctamente!');
   }
 }
+async function handleCreateProject() {
+  displaySectionTitle('Crear Nuevo Proyecto');
+  const clients = await clientService.listClients();
+  if (clients.length === 0) {
+    console.log(chalk.yellow('No hay clientes registrados. Crea un cliente primero.'));
+    return;
+  }
+  const { clientId } = await inquirer.prompt({
+    type: 'list',
+    name: 'clientId',
+    message: 'Selecciona el cliente para este proyecto:',
+    choices: clients.map(c => ({
+      name: `${c.name} (${c.email})`,
+      value: c._id.toString()
+    }))
+  });
+
+  const projectData = await inquirer.prompt([
+    { type: 'input', name: 'name', message: 'Nombre del proyecto:' },
+    { type: 'input', name: 'description', message: 'Descripción:' },
+    { type: 'number', name: 'budget', message: 'Presupuesto:' },
+    { type: 'input', name: 'startDate', message: 'Fecha de inicio (YYYY-MM-DD):', validate: input => !isNaN(Date.parse(input)) || 'Fecha inválida' },
+    { type: 'input', name: 'deadline', message: 'Fecha límite (YYYY-MM-DD):', validate: input => !isNaN(Date.parse(input)) || 'Fecha inválida' }
+  ]);
+
+  await projectService.createProject({
+    ...projectData,
+    clientId,
+    startDate: new Date(projectData.startDate),
+    deadline: new Date(projectData.deadline)
+  });
+
+  displaySuccess('Proyecto creado y asignado al cliente.');
+}
+
