@@ -101,6 +101,11 @@ Al iniciar la app, accederás a un menú principal en la terminal:
 - Consultar balances financieros por cliente o rango de fechas
 - Visualizar relaciones y estados de forma clara e interactiva
 
+## 📎 Documentación Adicional
+
+- 📄 Documento de planeación y documentación final del proyecto:  
+  [Ver en Google Drive] ("https://docs.google.com/document/d/1vkTHkpSxDSSQ5IWIb-KT0qfH0uvzquBv/edit?usp=sharing&ouid=114322530463211248384&rtpof=true&sd=true")
+
 ### 📌 Estructura del Proyecto
 
  <img width="668" height="750" alt="estructura-proyecto" src="https://github.com/user-attachments/assets/e22ce666-6a3a-4f72-8c05-bcf98973f667" />
