@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { ObjectId } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 /**
  * Muestra un mensaje de error formateado
@@ -85,4 +85,30 @@ export function displayTable(data, columns) {
       ).join('\n')
     )
   );
+}
+export async function checkMongoConnection() {
+  try {
+    const client = new MongoClient(process.env.MONGODB_URI);
+    await client.connect();
+    const adminDb = client.db().admin();
+    const serverStatus = await adminDb.serverStatus();
+    return {
+      connected: true,
+      version: serverStatus.version,
+      host: client.options.hosts[0].host
+    };
+  } catch (error) {
+    return {
+      connected: false,
+      error: error.message
+    };
+  }
+}
+
+export async function checkExternalServices() {
+  return {
+    'MongoDB': await checkMongoConnection(),
+    'Email Service': { status: 'Not Implemented' },
+    'PDF Generator': { status: 'Active' }
+  };
 }

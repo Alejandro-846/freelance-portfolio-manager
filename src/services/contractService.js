@@ -1,9 +1,9 @@
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
-import { ContractRepository } from '../repositories/contractRepository.js';
-import { ClientRepository } from '../repositories/clientRepository.js';
-import { ProjectRepository } from '../repositories/projectRepository.js';
+import { ContractRepository } from './repositories/contractRepository.js';
+import { ClientRepository } from './repositories/clientRepository.js';
+import { ProjectRepository } from './repositories/projectRepository.js';
 import { withTransaction } from '../config/database.js';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';

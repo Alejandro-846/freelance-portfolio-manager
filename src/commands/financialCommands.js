@@ -2,38 +2,35 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { FinancialService } from '../services/financialService.js';
 import { ClientService } from '../services/clientService.js';
-import { ProjectService } from '../services/projectService.js';
 import { displayError, displaySuccess, displaySectionTitle } from '../utils/helpers.js';
 
 const financialService = new FinancialService();
 const clientService = new ClientService();
-const projectService = new ProjectService();
 
 export async function financialMenu() {
   while (true) {
     const { action } = await inquirer.prompt({
       type: 'list',
       name: 'action',
-      message: chalk.blue.bold('\n=== Gestión Financiera ==='),
+      message: chalk.blue.bold('\n=== Reportes Financieros ==='),
       choices: [
-        { name: 'Registrar Transacción', value: 'register' },
-        { name: 'Balance por Cliente', value: 'client' },
-        { name: 'Balance por Proyecto', value: 'project' },
-        { name: 'Reporte Financiero', value: 'report' },
+        { name: 'Balance General', value: 'balance' },
+        { name: 'Ingresos por Cliente', value: 'income' },
+        { name: 'Gastos por Categoría', value: 'expenses' },
         { name: 'Volver al Menú Principal', value: 'back' }
       ]
     });
 
     try {
       switch (action) {
-        case 'register':
-          await handleRegisterTransaction();
+        case 'balance':
+          await handleBalanceReport();
           break;
-        case 'client':
-          await handleClientBalance();
+        case 'income':
+          await handleIncomeReport();
           break;
-        case 'project':
-          await handleProjectBalance();
+        case 'expenses':
+          await handleExpensesReport();
           break;
         case 'back':
           return;
@@ -44,85 +41,47 @@ export async function financialMenu() {
   }
 }
 
-async function handleRegisterTransaction() {
-  displaySectionTitle('Registrar Transacción');
+async function handleBalanceReport() {
+  displaySectionTitle('Balance General');
+  const balance = await financialService.getBalance();
+  
+  console.log(chalk.green('\n--------------------------------'));
+  console.log(chalk.bold('Total Ingresos:'), chalk.green(`$${balance.totalIncome.toFixed(2)}`));
+  console.log(chalk.bold('Total Gastos:'), chalk.red(`$${balance.totalExpenses.toFixed(2)}`));
+  console.log(chalk.bold('Balance Neto:'), 
+    balance.net > 0 ? chalk.green(`$${balance.net.toFixed(2)}`) : chalk.red(`$${balance.net.toFixed(2)}`));
+}
 
-  // Seleccionar cliente
+async function handleIncomeReport() {
+  displaySectionTitle('Ingresos por Cliente');
+  
   const clients = await clientService.listClients();
-  const { clientId } = await inquirer.prompt({
-    type: 'list',
-    name: 'clientId',
-    message: 'Seleccione cliente:',
-    choices: clients.map(c => ({
-      name: `${c.name} (${c.email})`,
-      value: c._id.toString()
-    }))
-  });
-
-  // Seleccionar proyecto (opcional)
-  const projects = await projectService.listClientProjects(clientId);
-  let projectId = null;
-  if (projects.length > 0) {
-    const { useProject } = await inquirer.prompt({
-      type: 'confirm',
-      name: 'useProject',
-      message: '¿Asociar a un proyecto?',
-      default: false
-    });
-
-    if (useProject) {
-      const { selectedProjectId } = await inquirer.prompt({
-        type: 'list',
-        name: 'selectedProjectId',
-        message: 'Seleccione proyecto:',
-        choices: projects.map(p => ({
-          name: `${p.name} (${p._id})`,
-          value: p._id.toString()
-        }))
-      });
-      projectId = selectedProjectId;
-    }
+  if (clients.length === 0) {
+    console.log(chalk.yellow('No hay clientes registrados.'));
+    return;
   }
 
-  // Datos de la transacción
-  const transactionData = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'type',
-      message: 'Tipo de transacción:',
-      choices: [
-        { name: 'Ingreso', value: 'INCOME' },
-        { name: 'Gasto', value: 'EXPENSE' }
-      ]
-    },
-    {
-      type: 'number',
-      name: 'amount',
-      message: 'Monto:',
-      validate: input => input > 0 || 'Debe ser un valor positivo'
-    },
-    {
-      type: 'input',
-      name: 'description',
-      message: 'Descripción:',
-      validate: input => input.length >= 5 || 'Mínimo 5 caracteres'
-    },
-    {
-      type: 'list',
-      name: 'method',
-      message: 'Método de pago:',
-      choices: [
-        'TRANSFER', 'CASH', 'CREDIT_CARD', 'CRYPTO', 'OTHER'
-      ]
-    }
-  ]);
+  for (const client of clients) {
+    const income = await financialService.getClientIncome(client._id.toString());
+    console.log(chalk.green('\n--------------------------------'));
+    console.log(chalk.bold('Cliente:'), client.name);
+    console.log(chalk.bold('Email:'), client.email);
+    console.log(chalk.bold('Ingresos:'), `$${income.toFixed(2)}`);
+  }
+}
 
-  const transaction = await financialService.registerTransaction({
-    ...transactionData,
-    clientId,
-    projectId
+async function handleExpensesReport() {
+  displaySectionTitle('Gastos por Categoría');
+  const expenses = await financialService.getExpensesByCategory();
+  
+  if (expenses.length === 0) {
+    console.log(chalk.yellow('No hay datos de gastos disponibles.'));
+    return;
+  }
+
+  expenses.forEach(expense => {
+    console.log(chalk.green('\n--------------------------------'));
+    console.log(chalk.bold('Categoría:'), expense.category);
+    console.log(chalk.bold('Monto:'), `$${expense.amount.toFixed(2)}`);
   });
-
-  displaySuccess('Transacción registrada con éxito!');
-  console.log(chalk.gray(`ID: ${transaction._id}`));
 }
