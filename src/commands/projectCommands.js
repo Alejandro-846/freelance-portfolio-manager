@@ -19,6 +19,7 @@ export async function projectMenu() {
         { name: 'Ver Proyectos por Cliente', value: 'by-client' },
         { name: 'Agregar Entregable', value: 'add-deliverable' },
         { name: 'Actualizar Estado', value: 'update-status' },
+        { name: 'Clonar proyecto', value: 'clon-project' },
         { name: 'Volver al Menú Principal', value: 'back' }
       ]
     });
@@ -40,6 +41,9 @@ export async function projectMenu() {
         case 'update-status':
           await handleUpdateStatus();
           break;
+        case 'clon-project':
+          await handleSearchId();
+          break; 
         case 'back':
           return;
       }
@@ -226,3 +230,46 @@ async function handleCreateProject() {
   displaySuccess('Proyecto creado y asignado al cliente.');
 }
 
+// async function handleListProjectsClone() {
+//   displaySectionTitle('Proyectos Activos');
+//   const projects = await projectService.listActiveProjects();
+  
+//   if (projects.length === 0) {
+//     console.log(chalk.yellow('No hay proyectos activos para clonar.'));
+//     return;
+//   }
+
+//   projects.forEach(p => {
+//     console.log(chalk.green('\n--------------------------------'));
+//     console.log(chalk.bold('ID:'), p._id);
+//     console.log(chalk.bold('Nombre:'), p.name);
+//     console.log(chalk.bold('Estado:'), p.status);
+//     console.log(chalk.bold('Fecha Inicio:'), new Date(p.startDate).toLocaleDateString());
+//     console.log(chalk.bold('Fecha Límite:'), new Date(p.deadline).toLocaleDateString());
+//   });
+// }
+
+async function handleSearchId() {
+  displaySectionTitle('Buscar Proyecto por ID');
+  
+  const { searchTerm } = await inquirer.prompt({
+    type: 'input',
+    name: 'searchTerm',
+    message: 'Ingrese el ID del proyecto a clonar:'
+  });
+
+  const results = await projectService.searchProjectID(searchTerm);
+  
+  if (results.length === 0) {
+    console.log(chalk.yellow('No se encontraron coincidencias.'));
+    return;
+  }
+
+  results.forEach(client => {
+    console.log(chalk.green('\n--------------------------------'));
+    console.log(chalk.bold('ID:'), client._id);
+    console.log(chalk.bold('Nombre:'), client.name);
+    console.log(chalk.bold('Email:'), client.email);
+    if (client.company) console.log(chalk.bold('Empresa:'), client.company);
+  });
+}

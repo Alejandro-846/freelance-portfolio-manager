@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 📊 Freelance Portfolio Manager CLI  
 
 > Herramienta de línea de comandos (CLI) para gestionar **clientes**, **proyectos**, **contratos**, **entregables** y **finanzas** como freelancer.  
@@ -118,3 +119,6 @@ Al iniciar la app, accederás a un menú principal en la terminal:
 - Interfaz gráfica (opcional con Electron)
 
 <img width="4839" height="1329" alt="Imagen3" src="https://github.com/user-attachments/assets/d3245677-22ca-4f86-960c-46e0a594d6a6" />
+=======
+# freelance-portfolio-manager.
+>>>>>>> 44398c7969d8f94b3149fdb63934335b64670b77

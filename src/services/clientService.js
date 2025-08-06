@@ -66,7 +66,14 @@ export class ClientService {
       (client.company && client.company.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }
-
+  async searchProjectID(searchTerm) {
+    const allClients = await this.listClients(false);
+    return allClients.filter(client => 
+      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (client.company && client.company.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }
   async addClientProject(clientId, projectId) {
     return withTransaction(async (session) => {
       const client = await this.getClientById(clientId, session);
